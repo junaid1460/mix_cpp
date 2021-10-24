@@ -14,7 +14,9 @@ defmodule PackageManager.CLI.CMakeListsBuilder do
       config
       |> CMake.build()
 
-    :ok = File.write!("CMakeLists.txt", content)
+    :ok = File.mkdir_p!(PackageManager.build_dir())
+
+    :ok = File.write!("#{PackageManager.build_dir()}/CMakeLists.txt", content)
     config
   end
 end

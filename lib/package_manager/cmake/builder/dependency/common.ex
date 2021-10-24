@@ -3,7 +3,7 @@ defmodule PackageManager.CMake.Builder.Dependency.CommonParams do
 
   @default_cmake_cache_args %{
     build_shared_libs: true,
-    install_prefix_path: "${BUILD_DIR}"
+    install_prefix_path: "${#{PackageManager.cmake_build_dir_name()}}"
   }
 
   @params_map %{
@@ -51,7 +51,7 @@ defmodule PackageManager.CMake.Builder.Dependency.CommonParams do
   end
 
   defp download_prefix_path(%{name: name}) do
-    "PREFIX \"${DEPS_DIR}/#{name}\""
+    "PREFIX \"${#{PackageManager.cmake_deps_dir_name()}}/#{name}\""
   end
 
   defp build_cache_args(%{cache: cache}) when is_list(cache) do

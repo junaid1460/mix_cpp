@@ -3,12 +3,9 @@ defmodule PackageManager.CMake.Builder do
   alias PackageManager.PackageConfig
   alias PackageManager.PackageConfig.Compiler
 
-  @deps_and_build """
-  set(DEPS_DIR "${CMAKE_SOURCE_DIR}/_build/_deps")
-  set(BUILD_DIR "${CMAKE_SOURCE_DIR}/_build/_build")
-  """
-
   def build(%PackageConfig{} = config) do
+    PackageManager.set_out_dir!(config.output_directory)
+
     []
     |> add_version(config)
     |> add_dependency_dirs()
@@ -34,7 +31,7 @@ defmodule PackageManager.CMake.Builder do
   end
 
   defp add_dependency_dirs(content) do
-    [@deps_and_build | content]
+    [deps_and_build_dir() | content]
   end
 
   defp add_project(content, %PackageConfig{app: project}) do
@@ -46,7 +43,7 @@ defmodule PackageManager.CMake.Builder do
   end
 
   defp set_include_dirs(content) do
-    ["include_directories(\"\${BUILD_DIR}/include\")" | content]
+    ["include_directories(\"\${#{cmake_build_dir_name()}}/include\")" | content]
   end
 
   defp set_cpp_standard(content, %PackageConfig{compiler: %Compiler{cxx_standard: standard}}) do
@@ -54,28 +51,30 @@ defmodule PackageManager.CMake.Builder do
   end
 
   defp add_target(content, %PackageConfig{type: :executable, files: files, app: app}) do
-    files = Enum.join(files, " ")
+    cwd = PackageManager.root_dir() <> "/"
+    files = files |> Enum.map(&(cwd <> &1)) |> Enum.join(" ")
     ["add_executable(#{app} #{files})" | content]
   end
 
   defp add_target(content, %PackageConfig{type: :library, kind: kind, files: files, app: app}) do
-    files = Enum.join(files, " ")
+    cwd = PackageManager.root_dir() <> "/"
+    files = files |> Enum.map(&(cwd <> &1)) |> Enum.join(" ")
     kind = lib_kind(kind)
-    ["add_library(#{app} #{kind} #{files})" | content]
+    ["add_library(#{app} #{kind} #{files})" |> IO.inspect() | content]
   end
 
   defp lib_kind(:shared), do: "SHARED"
   defp lib_kind(:static), do: "STATIC"
 
-  defp set_out_dir(content, %PackageConfig{app: app, output_directory: dir}) do
+  defp set_out_dir(content, %PackageConfig{app: app}) do
     out_dir_spec = """
-    set(OUT_DIR ${CMAKE_SOURCE_DIR}/#{dir} )
+    set(#{out_dir_name()}  \"#{out_dir()}\")
 
     set_target_properties(#{app}
       PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${OUT_DIR}"
-      LIBRARY_OUTPUT_DIRECTORY "${OUT_DIR}"
-      RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}"
+      ARCHIVE_OUTPUT_DIRECTORY "${#{out_dir_name()}}"
+      LIBRARY_OUTPUT_DIRECTORY "${#{out_dir_name()}}"
+      RUNTIME_OUTPUT_DIRECTORY "${#{out_dir_name()}}"
     )
     """
 
@@ -88,5 +87,23 @@ defmodule PackageManager.CMake.Builder do
 
   defp link_deps(content, config) do
     Dependency.build_links(config) ++ content
+  end
+
+  defp deps_and_build_dir do
+    """
+    set(#{{cmake_deps_dir_name(), cmake_deps_dir()} |> tuple_to_string})
+    set(#{{cmake_build_dir_name(), cmake_build_dir()} |> tuple_to_string})
+    """
+  end
+
+  defp cmake_deps_dir, do: PackageManager.cmake_build_dir()
+  defp cmake_deps_dir_name, do: PackageManager.cmake_build_dir_name()
+  defp cmake_build_dir, do: PackageManager.cmake_deps_dir()
+  defp cmake_build_dir_name, do: PackageManager.cmake_deps_dir_name()
+  defp out_dir, do: PackageManager.cmake_out_dir()
+  defp out_dir_name, do: PackageManager.cmake_out_dir_name()
+
+  defp tuple_to_string({param, value}) do
+    "#{param} \"#{value}\""
   end
 end

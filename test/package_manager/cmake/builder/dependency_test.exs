@@ -8,10 +8,10 @@ defmodule PackageManager.CMake.Builder.DependencyTest do
       expectation = """
       ExternalProject_Add(json
         GIT_REPOSITORY "hello"
-        PREFIX "${DEPS_DIR}/json"
+        PREFIX "${#{PackageManager.cmake_deps_dir_name()}}/json"
         CMAKE_CACHE_ARGS
           "-DBUILD_SHARED_LIBS:BOOL=true"
-          "-DCMAKE_INSTALL_PREFIX:PATH=${BUILD_DIR}"
+          "-DCMAKE_INSTALL_PREFIX:PATH=${#{PackageManager.cmake_build_dir_name()}}"
         UPDATE_COMMAND ""
       )
       """
@@ -35,10 +35,10 @@ defmodule PackageManager.CMake.Builder.DependencyTest do
       expectation = """
       ExternalProject_Add(json
         URL "hello"
-        PREFIX "${DEPS_DIR}/json"
+        PREFIX "${#{PackageManager.cmake_deps_dir_name()}}/json"
         CMAKE_CACHE_ARGS
           "-DBUILD_SHARED_LIBS:BOOL=true"
-          "-DCMAKE_INSTALL_PREFIX:PATH=${BUILD_DIR}"
+          "-DCMAKE_INSTALL_PREFIX:PATH=${#{PackageManager.cmake_build_dir_name()}}"
         UPDATE_COMMAND ""
         BUILD_COMMAND "./otp"
         CONFIGURE_COMMAND "test"
@@ -66,10 +66,10 @@ defmodule PackageManager.CMake.Builder.DependencyTest do
       expectation = """
       ExternalProject_Add(json
         URL "hello"
-        PREFIX "${DEPS_DIR}/json"
+        PREFIX "${#{PackageManager.cmake_deps_dir_name()}}/json"
         CMAKE_CACHE_ARGS
           "-DBUILD_SHARED_LIBS:BOOL=true"
-          "-DCMAKE_INSTALL_PREFIX:PATH=${BUILD_DIR}"
+          "-DCMAKE_INSTALL_PREFIX:PATH=${#{PackageManager.cmake_build_dir_name()}}"
         UPDATE_COMMAND ""
       )
       """
@@ -90,10 +90,10 @@ defmodule PackageManager.CMake.Builder.DependencyTest do
       expectation = """
       ExternalProject_Add(json
         GIT_REPOSITORY "hello"
-        PREFIX "${DEPS_DIR}/json"
+        PREFIX "${#{PackageManager.cmake_deps_dir_name()}}/json"
         CMAKE_CACHE_ARGS
           "-DBUILD_SHARED_LIBS:BOOL=true"
-          "-DCMAKE_INSTALL_PREFIX:PATH=${BUILD_DIR}"
+          "-DCMAKE_INSTALL_PREFIX:PATH=${#{PackageManager.cmake_build_dir_name()}}"
         UPDATE_COMMAND ""
       )
       """

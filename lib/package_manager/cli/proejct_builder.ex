@@ -1,5 +1,5 @@
 defmodule PackageManager.CLI.ProjectBuilder do
-  @cmake_dir "_build/_cmake"
+  @cmake_dir "cmake"
 
   @doc """
   Builds config from package.exs
@@ -9,11 +9,12 @@ defmodule PackageManager.CLI.ProjectBuilder do
     %PackageConfig{}
   """
   def build(target \\ "") when is_binary(target) do
-    project_dir = File.cwd!()
-    File.mkdir_p!(@cmake_dir)
-    File.cd!(@cmake_dir)
+    build_dir = PackageManager.build_dir()
+    cmake_dir = "#{build_dir}/#{@cmake_dir}"
+    File.mkdir_p!(cmake_dir)
+    File.cd!(cmake_dir)
 
-    System.cmd("cmake", ["#{project_dir}"], into: IO.stream())
+    System.cmd("cmake", ["#{build_dir}"], into: IO.stream())
     System.cmd("make", ["#{target}"], into: IO.stream())
   end
 end

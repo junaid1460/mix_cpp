@@ -13,6 +13,7 @@ defmodule PackageManager.CLI do
   """
 
   def main(args) do
+    PackageManager.set_current_directory!(File.cwd!())
     exec(args)
   end
 
