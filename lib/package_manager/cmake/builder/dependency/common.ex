@@ -6,22 +6,45 @@ defmodule PackageManager.CMake.Builder.Dependency.CommonParams do
     install_prefix_path: "${BUILD_DIR}"
   }
 
+  @params_map %{
+    configure: "CONFIGURE_COMMAND",
+    build: "BUILD_COMMAND"
+  }
+
+  @params Map.keys(@params_map)
+
   def build(dependency) do
     [
       download_prefix_path(dependency),
       build_cache_args(dependency),
-      add_update_command(dependency),
-      add_configure_command(dependency)
+      add_update_command(dependency)
     ]
+    |> Kernel.++(build_params(dependency))
     |> Enum.reject(&is_nil/1)
     |> Enum.join("\n")
   end
 
-  defp add_configure_command(%{configure: configure}) do
-    "CONFIGURE_COMMAND \"#{configure}\""
+  defp build_params(%{} = dependency) do
+    dependency
+    |> Map.keys()
+    |> MapSet.new()
+    |> MapSet.intersection(MapSet.new(@params))
+    |> Enum.map(fn key ->
+      param(key, Map.get(@params_map, key), Map.get(dependency, key))
+    end)
   end
 
-  defp add_configure_command(_), do: nil
+  defp param(_, key, value) when is_binary(value) do
+    "#{key} \"#{value}\""
+  end
+
+  defp param(_, key, value) when not is_nil(value) do
+    "#{key} #{value}"
+  end
+
+  defp param(_, _, _) do
+    nil
+  end
 
   defp download_prefix_path(%{prefix: prefix}) do
     "PREFIX \"#{prefix}\""
@@ -32,6 +55,14 @@ defmodule PackageManager.CMake.Builder.Dependency.CommonParams do
   end
 
   defp build_cache_args(%{cache: cache}) when is_list(cache) do
+    do_build_cache_args(cache)
+  end
+
+  defp build_cache_args(_dependency) do
+    do_build_cache_args(%{})
+  end
+
+  defp do_build_cache_args(cache) do
     cache_args =
       cache
       |> Enum.into(%{})
